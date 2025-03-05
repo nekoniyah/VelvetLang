@@ -165,9 +165,7 @@ Condition
     }
 
 ComparisonOperator
-  = "=" / "!=" / "<" / ">" / "<=" / ">=" {
-      return text();
-    }
+  = ">=" / "<=" / "!=" / "=" / ">" / "<"
 
 StatementBlock
   = Statement+
