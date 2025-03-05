@@ -1,4 +1,3 @@
-import fs from "fs";
 import variableDeclaraton from "./lib/variableDeclaration";
 import handleFunctions from "./lib/handleFunctions";
 import { parser } from "./parser";
@@ -9,6 +8,7 @@ function evaluate(text: string) {
     const variableMemory: Map<string, { type: string; value: any }> = new Map();
 
     ast.forEach((element: any, line: number) => {
+        console.log(element);
         element = Object.assign(element, { line: line + 1 });
 
         switch (element.type) {

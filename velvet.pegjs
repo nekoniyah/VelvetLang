@@ -11,19 +11,19 @@ Statement
 // Variable Declaration
 VariableDeclaration
   = type:Type? _ name:Identifier _ ":" _ value:Expression _ {
-      return { type: "variable_declaration", name, value, var_type: type || "any" };
+      return { type: "variable_declaration", name, value, var_type: type || "any",location:location() };
     }
 
 // Assignment
 Assignment
   = name:Identifier _ ":" _ value:Expression _ {
-      return { type: "assignment", name, value };
+      return { type: "assignment", name, value,location:location() };
     }
 
 // Function Call
 FunctionCall
   = name:("len" / "round" / "ceil" / "floor" / "print") "(" _ args:Arguments? _ ")" {
-      return { type: "function_call", name, args };
+      return { type: "function_call", name, args,location:location() };
     }
 
 // Print Statement
@@ -35,7 +35,7 @@ FunctionCall
 // Expression Statement
 ExpressionStatement
   = expr:Expression _ {
-      return { type: "expression_statement", expr };
+      return { type: "expression_statement", expr,location:location() };
     }
 
 // Expressions
@@ -116,10 +116,10 @@ StringLiteral
 
 NumberLiteral
   = value:[0-9]+ "." fraction:[0-9]+ _ {
-      return { type: "float", value: parseFloat((value.join("") + "." + fraction.join("")).trim()) };
+      return { type: "float", value: parseFloat((value.join("") + "." + fraction.join("")).trim()),location:location() };
     }
   / value:[0-9]+ _ {
-      return { type: "int", value: parseInt(value.join("").trim()) };
+      return { type: "int", value: parseInt(value.join("").trim()),location:location() };
     }
 
 BoolLiteral
