@@ -4,9 +4,9 @@ Program
 Statement
   = VariableDeclaration
   / FunctionCall
-  // / PrintStatement
   / Assignment
   / ExpressionStatement
+  / IfStatement
 
 // Variable Declaration
 VariableDeclaration
@@ -142,3 +142,32 @@ Arguments
 
 // Ignore whitespace
 _ = [ \t\r\n]*  // Whitespace includes spaces, tabs, and newlines
+
+// Add these new rules
+IfStatement
+  = "if" _ condition:Condition _ ":" _ body:StatementBlock {
+      return {
+        type: "if_statement",
+        condition: condition,
+        body: body,
+        location: location()
+      };
+    }
+
+Condition
+  = left:Expression _ operator:ComparisonOperator _ right:Expression {
+      return {
+        type: "condition",
+        left: left,
+        operator: operator,
+        right: right
+      };
+    }
+
+ComparisonOperator
+  = "=" / "!=" / "<" / ">" / "<=" / ">=" {
+      return text();
+    }
+
+StatementBlock
+  = Statement+
