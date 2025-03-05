@@ -154,22 +154,14 @@ IfStatement
     }
 
 StatementBlock
-  = statements:(IndentedStatement)+ {
+  = [\n\r]+ statements:IndentedStatement+ {
       return statements;
     }
 
 IndentedStatement
-  = Newline Indent statement:Statement {
+  = [ \t]+ statement:Statement Terminator? {
       return statement;
     }
-
-Indent
-  = [ \t]+ {
-      return text().length;
-    }
-
-Newline
-  = [\n\r]+ _
 
 Terminator
   = _ [\n\r]+ _
