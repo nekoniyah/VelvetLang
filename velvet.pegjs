@@ -2,11 +2,11 @@ Program
   = Statement*
 
 Statement
-  = VariableDeclaration
+  = IfStatement
+  / VariableDeclaration
   / FunctionCall
   / Assignment
   / ExpressionStatement
-  / IfStatement
 
 // Variable Declaration
 VariableDeclaration
@@ -140,10 +140,28 @@ Arguments
       return [first].concat(rest.map(r => r[3]));  // Collect arguments in an array
     }
 
-// Ignore whitespace
-_ = [ \t\r\n]*  // Whitespace includes spaces, tabs, and newlines
 
-// Add these new rules
+StatementBlock
+  = "\n" statements:IndentedStatement+ {
+      return statements;
+    }
+
+IndentedStatement
+  = Indent statement:Statement Newline {
+      return statement;
+    }
+
+Indent
+  = [ \t]+ {
+      return text().length;
+    }
+
+Newline = [\n\r]
+
+// Also modify the _ rule to not include newlines
+_ "whitespace"
+  = [ \t\n\r]*
+
 IfStatement
   = "if" _ condition:Condition _ ":" _ body:StatementBlock {
       return {
@@ -166,6 +184,3 @@ Condition
 
 ComparisonOperator
   = ">=" / "<=" / "!=" / "=" / ">" / "<"
-
-StatementBlock
-  = Statement+
