@@ -1,5 +1,10 @@
 Program
-  = Statement*
+  = statements:(Statement Terminator)* {
+      return statements.map(s => s[0]);
+    }
+
+Terminator
+  = _ [\n\r]+ _
 
 Statement
   = IfStatement
@@ -141,12 +146,12 @@ Arguments
     }
 
 StatementBlock
-  = Newline statements:IndentedStatement+ {
+  = Terminator indent:Indent statements:(IndentedStatement)+ {
       return statements;
     }
 
 IndentedStatement
-  = indent:Indent statement:Statement Newline {
+  = indent:Indent statement:Statement Terminator {
       return statement;
     }
 
@@ -155,10 +160,6 @@ Indent
       return text().length;
     }
 
-Newline
-  = [\n\r]+
-
-// Also modify the _ rule to not include newlines
 _ "whitespace"
   = [ \t]*
   
