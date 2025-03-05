@@ -8,7 +8,12 @@ export default function handleFunctions(element: any, variableMemory: any) {
     switch (element.name) {
         case "len":
             if (params[0] === undefined)
-                new VelvetError("len() requires an argument", element.line);
+                new VelvetError(
+                    "len() requires an argument",
+                    element.row,
+                    element.col,
+                    element.text
+                );
 
             if (
                 !TypeHandler(params[0], "string") ||
@@ -16,30 +21,46 @@ export default function handleFunctions(element: any, variableMemory: any) {
             ) {
                 new VelvetError(
                     "len() first argument must be a string or array",
-                    element.line
+                    element.row,
+                    element.col,
+                    element.text
                 );
             }
 
             return params[0].length;
         case "round":
             if (params[0] === undefined)
-                new VelvetError("round() requires an argument", element.line);
+                new VelvetError(
+                    "round() requires an argument",
+                    element.row,
+                    element.col,
+                    element.text
+                );
 
             if (!TypeHandler(params[0], "float"))
                 new VelvetError(
                     "round() first argument must be a float",
-                    element.line
+                    element.row,
+                    element.col,
+                    element.text
                 );
 
             return Math.round(params[0]);
         case "ceil":
             if (params[0] === undefined)
-                new VelvetError("ceil() requires an argument", element.line);
+                new VelvetError(
+                    "ceil() requires an argument",
+                    element.row,
+                    element.col,
+                    element.text
+                );
 
             if (!TypeHandler(params[0], "float"))
                 new VelvetError(
                     "ceil() first argument must be a float",
-                    element.line
+                    element.row,
+                    element.col,
+                    element.text
                 );
 
             return Math.ceil(params[0]);
@@ -47,13 +68,17 @@ export default function handleFunctions(element: any, variableMemory: any) {
             if (params[0] === undefined)
                 throw new VelvetError(
                     "floor() requires an argument",
-                    element.line
+                    element.row,
+                    element.col,
+                    element.text
                 );
 
             if (!TypeHandler(params[0], "float"))
                 throw new VelvetError(
                     "floor() first argument must be a float",
-                    element.line
+                    element.row,
+                    element.col,
+                    element.text
                 );
 
             return Math.floor(params[0]);
@@ -61,7 +86,9 @@ export default function handleFunctions(element: any, variableMemory: any) {
             if (params.length === 0)
                 new VelvetError(
                     "print() requires at least one argument",
-                    element.line
+                    element.row,
+                    element.col,
+                    element.text
                 );
 
             console.log(...params);

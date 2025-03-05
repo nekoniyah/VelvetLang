@@ -17,25 +17,19 @@ VariableDeclaration
 // Assignment
 Assignment
   = name:Identifier _ ":" _ value:Expression _ {
-      return { type: "assignment", name, value,location:location() };
+      return { type: "assignment", name, value, location:location() };
     }
 
 // Function Call
 FunctionCall
   = name:("len" / "round" / "ceil" / "floor" / "print") "(" _ args:Arguments? _ ")" {
-      return { type: "function_call", name, args,location:location() };
+      return { type: "function_call", name, args, location: location() };
     }
-
-// Print Statement
-// PrintStatement
-//   = "print" "(" _ args:Arguments _ ")" {
-//       return { type: "print_statement", args };
-//     }
 
 // Expression Statement
 ExpressionStatement
   = expr:Expression _ {
-      return { type: "expression_statement", expr,location:location() };
+      return { type: "expression_statement", expr, location:location() };
     }
 
 // Expressions
@@ -60,7 +54,7 @@ Expression
 
         return result;
       }, term);
-    } / Identifier / Literal
+    } / Identifier / Literal / FunctionCall
 
 Term
   = factor:Factor tail:(_ ("*" / "/") _ factor2:Factor)* {
@@ -89,7 +83,8 @@ Term
 Factor
   = "(" _ expr:Expression _ ")" { return expr; }
   / NumberLiteral
-  / Identifier
+  / Identifier / FunctionCall
+
 
 // Literals
 Literal

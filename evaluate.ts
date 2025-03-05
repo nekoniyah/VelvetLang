@@ -7,9 +7,14 @@ function evaluate(text: string) {
 
     const variableMemory: Map<string, { type: string; value: any }> = new Map();
 
+    let textToArray = text.split("\n");
+
     ast.forEach((element: any, line: number) => {
-        console.log(element);
-        element = Object.assign(element, { line: line + 1 });
+        element = Object.assign(element, {
+            row: element.location.start.line,
+            col: element.location.start.column,
+            text: text,
+        });
 
         switch (element.type) {
             case "assignment":

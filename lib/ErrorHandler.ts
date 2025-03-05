@@ -10,17 +10,17 @@ export class VelvetError {
         private row: number = 0,
         private text: string = ""
     ) {
-        console.log(chalk.red(`Error at ${this.line}:${this.row}`));
+        console.log(
+            chalk.red(`Error at line ${this.line}, column ${this.row}`)
+        );
         console.log(chalk.red(message));
-        let lines = text.split("\n");
+        let lines = this.text.split("\n");
 
-        for (let i = 1; i < lines.length; i++) {
-            if (i === this.line - 1) {
-                console.log(chalk.red(`\t${lines[i]}`));
-                console.log(chalk.red("\t" + "^".repeat(this.row)));
-            } else {
-                console.log(chalk.red(`\t${lines[i]}`));
-            }
+        if (this.line > 0 && this.line <= lines.length) {
+            // Show the line with the error
+            console.log(chalk.red(`\t${lines[this.line - 1]}`));
+            // Point to the exact column with ^
+            console.log(chalk.red("\t" + " ".repeat(this.row - 1) + "^"));
         }
 
         process.exit(1);
