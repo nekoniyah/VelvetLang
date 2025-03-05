@@ -3,8 +3,6 @@ Program
       return statements.map(s => s[0]);
     }
 
-Terminator
-  = _ [\n\r]+ _
 
 Statement
   = IfStatement
@@ -145,13 +143,23 @@ Arguments
       return [first].concat(rest.map(r => r[3]));  // Collect arguments in an array
     }
 
+IfStatement
+  = "if" _ condition:Condition _ ":" _ body:StatementBlock {
+      return {
+        type: "if_statement",
+        condition: condition,
+        body: body,
+        location: location()
+      };
+    }
+
 StatementBlock
-  = Terminator indent:Indent statements:(IndentedStatement)+ {
+  = statements:(IndentedStatement)+ {
       return statements;
     }
 
 IndentedStatement
-  = indent:Indent statement:Statement Terminator {
+  = Newline Indent statement:Statement {
       return statement;
     }
 
@@ -160,18 +168,14 @@ Indent
       return text().length;
     }
 
+Newline
+  = [\n\r]+ _
+
+Terminator
+  = _ [\n\r]+ _
+
 _ "whitespace"
   = [ \t]*
-  
-IfStatement
-  = "if" _ condition:Condition _ ":" body:StatementBlock {
-      return {
-        type: "if_statement",
-        condition: condition,
-        body: body,
-        location: location()
-      };
-    }
 
 Condition
   = left:Expression _ operator:ComparisonOperator _ right:Expression {
