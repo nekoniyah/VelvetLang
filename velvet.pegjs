@@ -140,14 +140,13 @@ Arguments
       return [first].concat(rest.map(r => r[3]));  // Collect arguments in an array
     }
 
-
 StatementBlock
-  = "\n" statements:IndentedStatement+ {
+  = Newline statements:IndentedStatement+ {
       return statements;
     }
 
 IndentedStatement
-  = Indent statement:Statement Newline {
+  = indent:Indent statement:Statement Newline {
       return statement;
     }
 
@@ -156,14 +155,15 @@ Indent
       return text().length;
     }
 
-Newline = [\n\r]
+Newline
+  = [\n\r]+
 
 // Also modify the _ rule to not include newlines
 _ "whitespace"
-  = [ \t\n\r]*
-
+  = [ \t]*
+  
 IfStatement
-  = "if" _ condition:Condition _ ":" _ body:StatementBlock {
+  = "if" _ condition:Condition _ ":" body:StatementBlock {
       return {
         type: "if_statement",
         condition: condition,
