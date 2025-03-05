@@ -16,8 +16,10 @@ export default function handleFunctions(element: any, variableMemory: any) {
                 );
 
             if (
-                !TypeHandler(params[0], "string") ||
-                !TypeHandler(params[0], "array")
+                !(
+                    TypeHandler(params[0], "string") ||
+                    TypeHandler(params[0], "array")
+                )
             ) {
                 new VelvetError(
                     "len() first argument must be a string or array",
@@ -27,7 +29,11 @@ export default function handleFunctions(element: any, variableMemory: any) {
                 );
             }
 
-            return params[0].length;
+            return {
+                type: "int",
+                value: params[0].length,
+            };
+
         case "round":
             if (params[0] === undefined)
                 new VelvetError(
@@ -92,5 +98,6 @@ export default function handleFunctions(element: any, variableMemory: any) {
                 );
 
             console.log(...params);
+            return { value: undefined };
     }
 }

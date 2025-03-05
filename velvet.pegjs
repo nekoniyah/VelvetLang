@@ -11,7 +11,7 @@ Statement
 // Variable Declaration
 VariableDeclaration
   = type:Type? _ name:Identifier _ ":" _ value:Expression _ {
-      return { type: "variable_declaration", name, value, var_type: type || "any",location:location() };
+      return { type: "variable_declaration", name, value, var_type: type || "any", location:location() };
     }
 
 // Assignment
@@ -54,7 +54,7 @@ Expression
 
         return result;
       }, term);
-    } / Identifier / Literal / FunctionCall
+    } / FunctionCall / Identifier / Literal
 
 Term
   = factor:Factor tail:(_ ("*" / "/") _ factor2:Factor)* {
@@ -82,8 +82,8 @@ Term
 
 Factor
   = "(" _ expr:Expression _ ")" { return expr; }
-  / NumberLiteral
-  / Identifier / FunctionCall
+  / NumberLiteral / FunctionCall
+  / Identifier
 
 
 // Literals

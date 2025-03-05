@@ -24,12 +24,7 @@ function evaluate(text: string) {
                 });
                 break;
             case "variable_declaration":
-                variableDeclaraton(
-                    element.name,
-                    element.var_type,
-                    element.value,
-                    variableMemory
-                );
+                variableDeclaraton(element, variableMemory);
                 break;
             case "function_call":
                 handleFunctions(element, variableMemory);

@@ -1,15 +1,21 @@
-export default function variableDeclaraton(
-    name: string,
-    var_type: string,
-    value: any,
-    variableMemory: any
-) {
+import handleFunctions from "./handleFunctions";
+
+export default function variableDeclaraton(element: any, variableMemory: any) {
+    let { name, var_type, value } = element;
+    let isReturn = false;
     let strictVarType = var_type === "any" ? value.type : var_type;
 
-    if (strictVarType.toLowerCase() !== value.type) {
+    if (element.value && element.value.type === "function_call") {
+        value = handleFunctions(value, variableMemory);
+        isReturn = true;
+    }
+
+    if (!isReturn && strictVarType.toLowerCase() !== value.type) {
         console.error(`Type mismatch: ${strictVarType} != ${value.type}`);
         process.exit(1);
     }
+
+    console.log(`Variable ${name} of type ${strictVarType} declared`);
 
     if (strictVarType.toLowerCase() === "string") {
         let finalString = "";
@@ -32,33 +38,33 @@ export default function variableDeclaraton(
                 finalString += char;
             }
         } else {
-            finalString = value.value;
+            finalString = value.value || value;
         }
 
         variableMemory.set(name, {
             type: strictVarType,
-            value: finalString,
+            value: finalString || value,
         });
     }
 
-    if (strictVarType.toLowerCase() === "Number") {
+    if (strictVarType.toLowerCase() === "bool") {
+        variableMemory.set(name, {
+            type: strictVarType,
+            value: value.value || value,
+        });
+    }
+
+    if (strictVarType.toLowerCase() === "float") {
         variableMemory.set(name, {
             type: strictVarType,
             value: value.value,
         });
     }
 
-    if (strictVarType.toLowerCase() === "Bool") {
+    if (strictVarType.toLowerCase() === "int") {
         variableMemory.set(name, {
             type: strictVarType,
-            value: value.value,
-        });
-    }
-
-    if (strictVarType.toLowerCase() === "Float") {
-        variableMemory.set(name, {
-            type: strictVarType,
-            value: value.value,
+            value: parseInt(value.value || value),
         });
     }
 }
