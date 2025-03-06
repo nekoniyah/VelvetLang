@@ -8,7 +8,7 @@ function evaluate(text: string) {
 
     const variableMemory: Map<string, { type: string; value: any }> = new Map();
 
-    ast.forEach((element: any) => {
+    function evaluateElement(element: any) {
         element = Object.assign(element, {
             row: element.location.start.line,
             col: element.location.start.column,
@@ -28,18 +28,23 @@ function evaluate(text: string) {
             case "function_call":
                 handleFunctions(element, variableMemory);
                 break;
-            case "if_statement":
-                evaluateCondition(element.condition, variableMemory) &&
-                    element.body.forEach((stmt: any) => evaluate(stmt));
-                break;
-            case "if_else_statement":
-                if (evaluateCondition(element.condition, variableMemory)) {
-                    element.ifBody.forEach((stmt: any) => evaluate(stmt));
-                } else {
-                    element.elseBody.forEach((stmt: any) => evaluate(stmt));
+            case "if":
+                let result = evaluateCondition(element, variableMemory);
+                if (result) {
+                    let statements = element.statements;
+
+                    statements
+                        .map((s: any) => s.expr)
+                        .forEach((statement: any) => {
+                            evaluateElement(statement);
+                        });
                 }
                 break;
         }
+    }
+
+    ast.forEach((element: any) => {
+        evaluateElement(element.expr || element);
     });
 }
 

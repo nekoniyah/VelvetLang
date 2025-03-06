@@ -15,8 +15,6 @@ export default function variableDeclaraton(element: any, variableMemory: any) {
         process.exit(1);
     }
 
-    console.log(`Variable ${name} of type ${strictVarType} declared`);
-
     if (strictVarType.toLowerCase() === "string") {
         let finalString = "";
 

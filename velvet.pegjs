@@ -1,15 +1,14 @@
-Program
-  = statements:(Statement Terminator)* {
-      return statements.map(s => s[0]);
-    }
+Program = Statement*
 
 
 Statement
-  = IfStatement
-  / VariableDeclaration
-  / FunctionCall
+  =
+  VariableDeclaration
+  / IfStatement
   / Assignment
   / ExpressionStatement
+  / FunctionCall
+  
 
 // Variable Declaration
 VariableDeclaration
@@ -36,6 +35,7 @@ ExpressionStatement
     }
 
 // Expressions
+
 Expression
   = term:Term tail:(_ ("+" / "-") _ term2:Term)* {
       return tail.reduce(function(result, element) {
@@ -141,43 +141,33 @@ Type
 Arguments
   = first:Expression rest:(_ "," _ Expression)* {
       return [first].concat(rest.map(r => r[3]));  // Collect arguments in an array
-    }
+}
+
+SimpleConditionOperator = "=" / "<" / ">"
+TwoCharactersConditionOperator = "!=" / "<=" / ">="
+
+NonCalculationStatement = Identifier / FunctionCall / Literal
+
+Operator = TwoCharactersConditionOperator / SimpleConditionOperator
+
+Condition = left:NonCalculationStatement _ operator:Operator _ right:NonCalculationStatement {
+    return { type: "condition", left, operator, right, location:location() };
+}
+
+
+// Statements for if conditions with no parentheses and followed by a colon
+
+// Must support multiple statements
+
+MultipleStatements = statements:(_ Statement)* {
+  return statements.map(s => s[1]);
+}
 
 IfStatement
-  = "if" _ condition:Condition _ ":" _ body:StatementBlock {
-      return {
-        type: "if_statement",
-        condition: condition,
-        body: body,
-        location: location()
-      };
-    }
+  = "if" _ condition:Condition _ ":" NotNewLine statements:MultipleStatements NotNewLine {
+      return { type: "if", condition, statements, location:location() };
+}
 
-StatementBlock
-  = [\n\r]+ statements:IndentedStatement+ {
-      return statements;
-    }
+NotNewLine = [ \t\r]*
 
-IndentedStatement
-  = [ \t]+ statement:Statement Terminator? {
-      return statement;
-    }
-
-Terminator
-  = _ [\n\r]+ _
-
-_ "whitespace"
-  = [ \t]*
-
-Condition
-  = left:Expression _ operator:ComparisonOperator _ right:Expression {
-      return {
-        type: "condition",
-        left: left,
-        operator: operator,
-        right: right
-      };
-    }
-
-ComparisonOperator
-  = ">=" / "<=" / "!=" / "=" / ">" / "<"
+_ = [ \t\r\n]*
