@@ -15,7 +15,9 @@ export default function handleFunctions(element: any, memory: MemoryManager) {
             case "floor":
                 return Math.floor(element.value);
             case "print":
-                console.log(...element.args);
+                console.log(
+                    ...element.args.map((arg: any) => arg.value || arg)
+                );
         }
         return;
     }

@@ -20,7 +20,6 @@ export function evaluateElement(element: any, memory: MemoryManager) {
 
     const handler = handlers[element.type];
     if (handler) {
-        console.log(element);
         handler(element);
     } else {
         console.warn(`Unknown element type: ${element.type}`);
@@ -50,32 +49,32 @@ export function evaluateElement(element: any, memory: MemoryManager) {
         throw { type: "return", value };
     }
     function evaluateIfStatement(element: any, memory: MemoryManager) {
-        // Check main if condition
-        const mainConditionResult = evaluateCondition(element, memory);
+        // The condition is directly in element.condition, not nested
+        const mainConditionResult = evaluateCondition(
+            { condition: element.condition }, // Wrap it properly for evaluateCondition
+            memory
+        );
 
         if (mainConditionResult) {
             // Execute main if block
             for (const stmt of element.statements || []) {
                 evaluateElement(stmt, memory);
             }
-            return; // Exit after executing if block
+            return;
         }
 
         // Check else-if conditions
         for (const elseIfPart of element.elseIfParts || []) {
             const elseIfConditionResult = evaluateCondition(
-                {
-                    condition: elseIfPart.condition,
-                },
+                { condition: elseIfPart.condition }, // Wrap it properly here too
                 memory
             );
 
             if (elseIfConditionResult) {
-                // Execute matching else-if block
                 for (const stmt of elseIfPart.statements || []) {
                     evaluateElement(stmt, memory);
                 }
-                return; // Exit after executing else-if block
+                return;
             }
         }
 

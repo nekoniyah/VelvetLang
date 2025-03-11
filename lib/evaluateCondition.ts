@@ -17,7 +17,7 @@ export default function evaluateCondition(
     }
 
     if (typeof condition.right === "string") {
-        condition.right = condition.right.trimStart();
+        condition.right = condition.right.replace(" ", "");
 
         if (variableMemory.hasVariable(condition.right)) {
             condition.right = variableMemory.getVariable(
@@ -25,6 +25,7 @@ export default function evaluateCondition(
             )?.value;
         }
     }
+
     const leftValue = getValueFromExpression(
         condition.left.value || condition.left,
         variableMemory
