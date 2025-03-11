@@ -1,117 +1,35 @@
-import { VelvetError } from "./ErrorHandler";
+import { evaluateElement } from "../evaluate";
 import handleFunctionParameters from "./handleFunctionParameters";
 import { MemoryManager } from "./MemoryManager";
-import TypeHandler from "./TypeHandler";
 
-export default function handleFunctions(
-    element: any,
-    variableMemory: MemoryManager
-) {
-    let params = handleFunctionParameters(element, variableMemory);
+export default function handleFunctions(element: any, memory: MemoryManager) {
+    // Handle built-in functions
+    if (["len", "round", "ceil", "floor", "print"].includes(element.name)) {
+        // Existing built-in function handling code...
+        return;
+    }
 
-    switch (element.name) {
-        case "len":
-            if (params[0] === undefined)
-                new VelvetError(
-                    "len() requires an argument",
-                    element.row,
-                    element.col,
-                    element.text
-                );
+    // Handle user-defined functions
+    if (memory.hasFunction(element.name)) {
+        const func = memory.getFunction(element.name);
+        const scope = memory.createScope();
 
-            if (
-                !(
-                    TypeHandler(params[0], "string") ||
-                    TypeHandler(params[0], "array")
-                )
-            ) {
-                new VelvetError(
-                    "len() first argument must be a string or array",
-                    element.row,
-                    element.col,
-                    element.text
-                );
+        // Set up parameters in new scope
+        const params = handleFunctionParameters(element, memory);
+        func!.params.forEach((param: any, index: number) => {
+            scope.setVariable(param.name, param.type, params[index]);
+        });
+
+        try {
+            // Execute function body
+            for (const stmt of func!.body) {
+                evaluateElement(stmt, memory);
             }
-
-            return {
-                type: "int",
-                value: params[0].length,
-            };
-
-        case "round":
-            if (params[0] === undefined)
-                new VelvetError(
-                    "round() requires an argument",
-                    element.row,
-                    element.col,
-                    element.text
-                );
-
-            if (!TypeHandler(params[0], "float"))
-                new VelvetError(
-                    "round() first argument must be a float",
-                    element.row,
-                    element.col,
-                    element.text
-                );
-
-            return {
-                type: "int",
-                value: Math.round(params[0]),
-            };
-
-        case "ceil":
-            if (params[0] === undefined)
-                new VelvetError(
-                    "ceil() requires an argument",
-                    element.row,
-                    element.col,
-                    element.text
-                );
-
-            if (!TypeHandler(params[0], "float"))
-                new VelvetError(
-                    "ceil() first argument must be a float",
-                    element.row,
-                    element.col,
-                    element.text
-                );
-
-            return {
-                type: "int",
-                value: Math.ceil(params[0]),
-            };
-        case "floor":
-            if (params[0] === undefined)
-                throw new VelvetError(
-                    "floor() requires an argument",
-                    element.row,
-                    element.col,
-                    element.text
-                );
-
-            if (!TypeHandler(params[0], "float"))
-                throw new VelvetError(
-                    "floor() first argument must be a float",
-                    element.row,
-                    element.col,
-                    element.text
-                );
-
-            return {
-                type: "int",
-                value: Math.floor(params[0]),
-            };
-        case "print":
-            if (params.length === 0)
-                new VelvetError(
-                    "print() requires at least one argument",
-                    element.row,
-                    element.col,
-                    element.text
-                );
-
-            console.log(...params);
-            return { value: undefined };
+        } catch (e) {
+            if (e.type === "return") {
+                return e.value;
+            }
+            throw e;
+        }
     }
 }

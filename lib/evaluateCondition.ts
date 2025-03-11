@@ -29,6 +29,7 @@ export default function evaluateCondition(
         condition.left.value || condition.left,
         variableMemory
     );
+
     const rightValue = getValueFromExpression(
         condition.right.value || condition.right,
         variableMemory

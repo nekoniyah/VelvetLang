@@ -8,6 +8,9 @@ Statement
   / IfStatement
   / FunctionCall
   / ExpressionStatement
+  / FunctionDeclaration  
+  / ForLoop           
+  / ReturnStatement  
   / Comments
   
 
@@ -160,9 +163,34 @@ MultipleStatements = statements:(_ Statement) _ {
 }
 
 IfStatement
-  = "if" " " condition:Condition ":" "\r" statements:MultipleStatements {
-      return { type: "if", condition, statements, location: location() };
-}
+  = "if" " " condition:Condition ":" "\r" statements:MultipleStatements 
+    elseIfParts:ElseIfPart* 
+    elsePart:ElsePart? {
+      return { 
+        type: "if",
+        condition,
+        statements,
+        elseIfParts: elseIfParts || [],
+        elsePart: elsePart,
+        location: location()
+      };
+    }
+
+// Add new rules for else-if and else
+ElseIfPart
+  = "else if" " " condition:Condition ":" "\r" statements:MultipleStatements {
+      return {
+        condition,
+        statements
+      };
+    }
+
+ElsePart
+  = "else" ":" "\r" statements:MultipleStatements {
+      return {
+        statements
+      };
+    }
 
 NotNewLine = [ \t\r]*
 
@@ -170,5 +198,46 @@ Comments
   = _ "//" _ {
     return { type: "comment", value: text(), location: location() };
 }
+
+
+// Add new rules for functions
+FunctionDeclaration
+  = "func" _ name:Identifier "(" _ params:Parameters? _ ")" ":" "\r" body:MultipleStatements {
+      return {
+        type: "function_declaration",
+        name,
+        params: params || [],
+        body,
+        location: location()
+      };
+    }
+
+Parameters
+  = first:Parameter rest:(_ "," _ Parameter)* {
+      return [first].concat(rest.map(r => r[3]));
+    }
+
+Parameter
+  = type:Type? _ name:Identifier {
+      return { name, type: type || "any" };
+    }
+
+ReturnStatement
+  = "return" _ value:Expression _ {
+      return { type: "return", value, location: location() };
+    }
+
+// Add rule for for loop
+ForLoop
+  = "for" _ variable:Identifier _ "in" _ start:Expression _ "to" _ end:Expression ":" "\r" body:MultipleStatements {
+      return {
+        type: "for_loop",
+        variable,
+        start,
+        end,
+        body,
+        location: location()
+      };
+    }
 
 _ = [ \t\r\n]*
