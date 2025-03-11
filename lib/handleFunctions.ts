@@ -23,7 +23,7 @@ export default function handleFunctions(element: any, memory: MemoryManager) {
     // Handle user-defined functions
     if (memory.hasFunction(element.name)) {
         const func = memory.getFunction(element.name);
-        const scope = memory.createScope();
+        const scope = memory.createScope(); // Create new scope
 
         // Set up parameters in new scope
         const params = handleFunctionParameters(element, memory);
@@ -32,9 +32,9 @@ export default function handleFunctions(element: any, memory: MemoryManager) {
         });
 
         try {
-            // Execute function body
+            // Execute function body using the scope instead of memory
             for (const stmt of func!.body) {
-                evaluateElement(stmt, memory);
+                evaluateElement(stmt, scope); // Use scope instead of memory
             }
         } catch (e) {
             if (e.type === "return") {
