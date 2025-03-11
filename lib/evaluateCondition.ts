@@ -7,7 +7,7 @@ export default function evaluateCondition(
     if (condition.type !== "condition") return false;
 
     if (typeof condition.left === "string") {
-        condition.left = condition.left.trimEnd();
+        condition.left = condition.left.replace(" ", "");
 
         if (variableMemory.has(condition.left)) {
             condition.left = variableMemory.get(condition.left)!.value;
@@ -21,7 +21,6 @@ export default function evaluateCondition(
             condition.right = variableMemory.get(condition.right)!.value;
         }
     }
-
     const leftValue = getValueFromExpression(
         condition.left.value || condition.left,
         variableMemory
@@ -53,5 +52,6 @@ function getValueFromExpression(expr: any, variableMemory: Map<string, any>) {
     if (expr.type === "variable") {
         return variableMemory.get(expr.name)?.value;
     }
-    return expr.value || expr;
+
+    return expr.value ? expr.value : expr;
 }

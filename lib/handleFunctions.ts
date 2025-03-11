@@ -51,7 +51,11 @@ export default function handleFunctions(element: any, variableMemory: any) {
                     element.text
                 );
 
-            return Math.round(params[0]);
+            return {
+                type: "int",
+                value: Math.round(params[0]),
+            };
+
         case "ceil":
             if (params[0] === undefined)
                 new VelvetError(
@@ -69,7 +73,10 @@ export default function handleFunctions(element: any, variableMemory: any) {
                     element.text
                 );
 
-            return Math.ceil(params[0]);
+            return {
+                type: "int",
+                value: Math.ceil(params[0]),
+            };
         case "floor":
             if (params[0] === undefined)
                 throw new VelvetError(
@@ -87,7 +94,10 @@ export default function handleFunctions(element: any, variableMemory: any) {
                     element.text
                 );
 
-            return Math.floor(params[0]);
+            return {
+                type: "int",
+                value: Math.floor(params[0]),
+            };
         case "print":
             if (params.length === 0)
                 new VelvetError(

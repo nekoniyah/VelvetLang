@@ -1,3 +1,5 @@
+import handleFunctions from "./handleFunctions";
+
 export default function handleFunctionParameters(
     element: any,
     variableMemory: any
@@ -16,6 +18,10 @@ export default function handleFunctionParameters(
         if (!element.args) return [];
 
         let args = element.args.map((arg: any) => {
+            if (arg.type === "function_call")
+                // @ts-ignore
+                return handleFunctions(arg, variableMemory)?.value;
+
             if (typeof arg === "string") {
                 if (arg === "true" || arg === "false") {
                     return arg === "true";

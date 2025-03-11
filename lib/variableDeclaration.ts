@@ -1,21 +1,42 @@
+import assignmentHandler from "./assignmentHandler";
+import { VelvetError } from "./ErrorHandler";
 import handleFunctions from "./handleFunctions";
 
 export default function variableDeclaraton(element: any, variableMemory: any) {
     let { name, var_type, value } = element;
+
     let isReturn = false;
-    let strictVarType = var_type === "any" ? value.type : var_type;
+    let strictVarType = var_type === "any" ? "any" : value.type.toLowerCase();
+
+    if (variableMemory.has(name) && strictVarType === "any") {
+        assignmentHandler(element, variableMemory);
+        return;
+    }
+
+    if (variableMemory.has(name) && strictVarType !== "any") {
+        new VelvetError(
+            `Variable ${name} already declared`,
+            element.row,
+            element.col,
+            element.text
+        );
+    }
 
     if (element.value && element.value.type === "function_call") {
         value = handleFunctions(value, variableMemory);
         isReturn = true;
     }
 
-    if (!isReturn && strictVarType.toLowerCase() !== value.type) {
-        console.error(`Type mismatch: ${strictVarType} != ${value.type}`);
-        process.exit(1);
+    if (!isReturn && strictVarType !== "any" && strictVarType !== value.type) {
+        new VelvetError(
+            `Type mismatch: ${strictVarType} != ${value.type}`,
+            element.row,
+            element.col,
+            element.text
+        );
     }
 
-    if (strictVarType.toLowerCase() === "string") {
+    if (strictVarType === "string") {
         let finalString = "";
 
         if (value && value.chars) {
@@ -45,24 +66,31 @@ export default function variableDeclaraton(element: any, variableMemory: any) {
         });
     }
 
-    if (strictVarType.toLowerCase() === "bool") {
+    if (strictVarType === "bool") {
         variableMemory.set(name, {
             type: strictVarType,
             value: value.value || value,
         });
     }
 
-    if (strictVarType.toLowerCase() === "float") {
+    if (strictVarType === "float") {
         variableMemory.set(name, {
             type: strictVarType,
             value: value.value,
         });
     }
 
-    if (strictVarType.toLowerCase() === "int") {
+    if (strictVarType === "int") {
         variableMemory.set(name, {
             type: strictVarType,
             value: parseInt(value.value || value),
+        });
+    }
+
+    if (strictVarType === "any") {
+        variableMemory.set(name, {
+            type: strictVarType,
+            value: value.value || value,
         });
     }
 }

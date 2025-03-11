@@ -3,17 +3,18 @@ Program = Statement*
 
 Statement
   =
-  VariableDeclaration
-  / IfStatement
+   VariableDeclaration
   / Assignment
-  / ExpressionStatement
+  / IfStatement
   / FunctionCall
+  / ExpressionStatement
+  / Comments
   
 
 // Variable Declaration
 VariableDeclaration
   = type:Type? _ name:Identifier _ ":" _ value:Expression _ {
-      return { type: "variable_declaration", name, value, var_type: type || "any", location:location() };
+      return { type: "variable_declaration", name, value, var_type: type ? type : "any", location:location() };
     }
 
 // Assignment
@@ -24,7 +25,7 @@ Assignment
 
 // Function Call
 FunctionCall
-  = name:("len" / "round" / "ceil" / "floor" / "print") "(" _ args:Arguments? _ ")" {
+  = name:("len" / "round" / "ceil" / "floor" / "print") "(" _ args:Arguments? _ ")" _ {
       return { type: "function_call", name, args, location: location() };
     }
 
@@ -151,23 +152,23 @@ NonCalculationStatement = Identifier / FunctionCall / Literal
 Operator = TwoCharactersConditionOperator / SimpleConditionOperator
 
 Condition = left:NonCalculationStatement _ operator:Operator _ right:NonCalculationStatement {
-    return { type: "condition", left, operator, right, location:location() };
+    return { type: "condition", left, operator, right, location: location() };
 }
 
-
-// Statements for if conditions with no parentheses and followed by a colon
-
-// Must support multiple statements
-
-MultipleStatements = statements:(_ Statement)* {
-  return statements.map(s => s[1]);
+MultipleStatements = statements:(_ Statement) _ {
+  return statements.filter(s =>  s !== null).filter(s => !("length" in s))
 }
 
 IfStatement
-  = "if" _ condition:Condition _ ":" NotNewLine statements:MultipleStatements NotNewLine {
-      return { type: "if", condition, statements, location:location() };
+  = "if" " " condition:Condition ":" "\r" statements:MultipleStatements {
+      return { type: "if", condition, statements, location: location() };
 }
 
 NotNewLine = [ \t\r]*
+
+Comments
+  = _ "//" _ {
+    return { type: "comment", value: text(), location: location() };
+}
 
 _ = [ \t\r\n]*

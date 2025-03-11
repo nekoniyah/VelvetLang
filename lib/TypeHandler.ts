@@ -16,6 +16,6 @@ export default function TypeHandler<T>(
         case "float":
             return typeof value === "number" && !Number.isInteger(value);
         default:
-            return false;
+            return true;
     }
 }

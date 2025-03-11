@@ -2,6 +2,7 @@ import variableDeclaraton from "./lib/variableDeclaration";
 import handleFunctions from "./lib/handleFunctions";
 import { parser } from "./parser";
 import evaluateCondition from "./lib/evaluateCondition";
+import assignmentHandler from "./lib/assignmentHandler";
 
 function evaluate(text: string) {
     let ast = parser.parse(text);
@@ -17,10 +18,7 @@ function evaluate(text: string) {
 
         switch (element.type) {
             case "assignment":
-                variableMemory.set(element.name, {
-                    type: element.value.type,
-                    value: element.value.value,
-                });
+                assignmentHandler(element, variableMemory);
                 break;
             case "variable_declaration":
                 variableDeclaraton(element, variableMemory);
@@ -32,10 +30,10 @@ function evaluate(text: string) {
                 let result = evaluateCondition(element, variableMemory);
                 if (result) {
                     let statements = element.statements;
-
                     statements
-                        .map((s: any) => s.expr)
+                        .map((s: any) => s.expr || s)
                         .forEach((statement: any) => {
+                            if (statement === undefined) return;
                             evaluateElement(statement);
                         });
                 }

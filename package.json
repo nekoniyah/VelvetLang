@@ -1,9 +1,12 @@
 {
-  "dependencies": {
-    "chalk": "^5.4.1",
-    "peggy": "^4.2.0"
-  },
-  "devDependencies": {
-    "@types/node": "^22.13.9"
-  }
+    "dependencies": {
+        "chalk": "^5.4.1",
+        "peggy": "^4.2.0"
+    },
+    "scripts": {
+        "start": "bun run index.ts"
+    },
+    "devDependencies": {
+        "@types/node": "^22.13.9"
+    }
 }
