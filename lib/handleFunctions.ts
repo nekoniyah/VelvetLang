@@ -5,7 +5,18 @@ import { MemoryManager } from "./MemoryManager";
 export default function handleFunctions(element: any, memory: MemoryManager) {
     // Handle built-in functions
     if (["len", "round", "ceil", "floor", "print"].includes(element.name)) {
-        // Existing built-in function handling code...
+        switch (element.name) {
+            case "len":
+                return element.value.length;
+            case "round":
+                return Math.round(element.value);
+            case "ceil":
+                return Math.ceil(element.value);
+            case "floor":
+                return Math.floor(element.value);
+            case "print":
+                console.log(...element.args);
+        }
         return;
     }
 
