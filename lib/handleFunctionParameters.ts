@@ -1,19 +1,20 @@
 import handleFunctions from "./handleFunctions";
+import { MemoryManager } from "./MemoryManager";
 
 export default function handleFunctionParameters(
     element: any,
-    variableMemory: any
+    variableMemory: MemoryManager
 ): any[] {
     if (element.value === "true" || element.value === "false") {
         return [element.value === "true"];
     }
 
     if (typeof element.value === "string") {
-        if (!variableMemory.has(element.value)) {
+        if (!variableMemory.hasVariable(element.value)) {
             return [undefined];
         }
 
-        return [variableMemory.get(element.value)!.value];
+        return [variableMemory.getVariable(element.value)?.value];
     } else {
         if (!element.args) return [];
 
@@ -27,9 +28,9 @@ export default function handleFunctionParameters(
                     return arg === "true";
                 }
 
-                if (!variableMemory.has(arg)) return undefined;
+                if (!variableMemory.hasVariable(arg)) return undefined;
 
-                return variableMemory.get(arg)!.value;
+                return variableMemory.getVariable(arg)?.value;
             } else return arg.chars ? arg.chars.join(" ") : arg.value;
         });
 

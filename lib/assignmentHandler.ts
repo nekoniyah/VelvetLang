@@ -1,6 +1,10 @@
 import handleFunctions from "./handleFunctions";
 import { VelvetError } from "./ErrorHandler";
-export default function assignmentHandler(element: any, variableMemory: any) {
+import { MemoryManager } from "./MemoryManager";
+export default function assignmentHandler(
+    element: any,
+    variableMemory: MemoryManager
+) {
     let { value } = element;
     let isReturn = false;
 
@@ -9,7 +13,7 @@ export default function assignmentHandler(element: any, variableMemory: any) {
         isReturn = true;
     }
 
-    let strictVarType = variableMemory.get(element.name)!.type;
+    let strictVarType = variableMemory.getVariable(element.name)?.value;
     if (!isReturn && strictVarType !== "any" && strictVarType !== value.type) {
         new VelvetError(
             `Type mismatch: ${strictVarType} != ${value.type}`,
@@ -19,8 +23,9 @@ export default function assignmentHandler(element: any, variableMemory: any) {
         );
     }
 
-    variableMemory.set(element.name, {
-        type: element.value.type,
-        value: element.value.value,
-    });
+    variableMemory.setVariable(
+        element.name,
+        element.value.type,
+        element.value.value
+    );
 }

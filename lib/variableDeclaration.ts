@@ -1,19 +1,23 @@
 import assignmentHandler from "./assignmentHandler";
 import { VelvetError } from "./ErrorHandler";
 import handleFunctions from "./handleFunctions";
+import { MemoryManager } from "./MemoryManager";
 
-export default function variableDeclaraton(element: any, variableMemory: any) {
+export default function variableDeclaraton(
+    element: any,
+    variableMemory: MemoryManager
+) {
     let { name, var_type, value } = element;
 
     let isReturn = false;
     let strictVarType = var_type === "any" ? "any" : value.type.toLowerCase();
 
-    if (variableMemory.has(name) && strictVarType === "any") {
+    if (variableMemory.hasVariable(name) && strictVarType === "any") {
         assignmentHandler(element, variableMemory);
         return;
     }
 
-    if (variableMemory.has(name) && strictVarType !== "any") {
+    if (variableMemory.hasVariable(name) && strictVarType !== "any") {
         new VelvetError(
             `Variable ${name} already declared`,
             element.row,
@@ -42,13 +46,17 @@ export default function variableDeclaraton(element: any, variableMemory: any) {
         if (value && value.chars) {
             for (let char of value.chars) {
                 if (typeof char === "object" && "variable" in char) {
-                    if (!variableMemory.has(char.variable)) {
+                    if (!variableMemory.hasVariable(char.variable)) {
                         finalString += "undefined";
                     } else {
-                        let variable = variableMemory.get(char.variable)!;
+                        let variable = variableMemory.getVariable(
+                            char.variable
+                        )?.value;
+
                         if (variable.type !== "String") {
                             finalString += "undefined";
                         }
+
                         finalString += variable.value;
                         break;
                     }
@@ -60,37 +68,30 @@ export default function variableDeclaraton(element: any, variableMemory: any) {
             finalString = value.value || value;
         }
 
-        variableMemory.set(name, {
-            type: strictVarType,
-            value: finalString || value,
-        });
+        variableMemory.setVariable(name, strictVarType, finalString || value);
     }
 
     if (strictVarType === "bool") {
-        variableMemory.set(name, {
-            type: strictVarType,
-            value: value.value || value,
-        });
+        variableMemory.setVariable(name, strictVarType, value.value || value);
     }
 
     if (strictVarType === "float") {
-        variableMemory.set(name, {
-            type: strictVarType,
-            value: value.value,
-        });
+        variableMemory.setVariable(
+            name,
+            strictVarType,
+            parseFloat(value.value || value)
+        );
     }
 
     if (strictVarType === "int") {
-        variableMemory.set(name, {
-            type: strictVarType,
-            value: parseInt(value.value || value),
-        });
+        variableMemory.setVariable(
+            name,
+            strictVarType,
+            parseInt(value.value || value)
+        );
     }
 
     if (strictVarType === "any") {
-        variableMemory.set(name, {
-            type: strictVarType,
-            value: value.value || value,
-        });
+        variableMemory.setVariable(name, strictVarType, value.value || value);
     }
 }

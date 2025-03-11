@@ -1,6 +1,8 @@
+import { MemoryManager } from "./MemoryManager";
+
 export default function evaluateCondition(
     element: any,
-    variableMemory: Map<string, any>
+    variableMemory: MemoryManager
 ): boolean {
     let { condition } = element;
 
@@ -9,16 +11,18 @@ export default function evaluateCondition(
     if (typeof condition.left === "string") {
         condition.left = condition.left.replace(" ", "");
 
-        if (variableMemory.has(condition.left)) {
-            condition.left = variableMemory.get(condition.left)!.value;
+        if (variableMemory.hasVariable(condition.left)) {
+            condition.left = variableMemory.getVariable(condition.left)?.value;
         }
     }
 
     if (typeof condition.right === "string") {
         condition.right = condition.right.trimStart();
 
-        if (variableMemory.has(condition.right)) {
-            condition.right = variableMemory.get(condition.right)!.value;
+        if (variableMemory.hasVariable(condition.right)) {
+            condition.right = variableMemory.getVariable(
+                condition.right
+            )?.value;
         }
     }
     const leftValue = getValueFromExpression(
@@ -48,9 +52,9 @@ export default function evaluateCondition(
     }
 }
 
-function getValueFromExpression(expr: any, variableMemory: Map<string, any>) {
+function getValueFromExpression(expr: any, variableMemory: MemoryManager) {
     if (expr.type === "variable") {
-        return variableMemory.get(expr.name)?.value;
+        return variableMemory.getVariable(expr.name)?.value;
     }
 
     return expr.value ? expr.value : expr;

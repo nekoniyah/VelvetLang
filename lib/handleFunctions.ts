@@ -1,8 +1,12 @@
 import { VelvetError } from "./ErrorHandler";
 import handleFunctionParameters from "./handleFunctionParameters";
+import { MemoryManager } from "./MemoryManager";
 import TypeHandler from "./TypeHandler";
 
-export default function handleFunctions(element: any, variableMemory: any) {
+export default function handleFunctions(
+    element: any,
+    variableMemory: MemoryManager
+) {
     let params = handleFunctionParameters(element, variableMemory);
 
     switch (element.name) {
