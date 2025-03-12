@@ -10,7 +10,8 @@ export default function variableDeclaraton(
     let { name, var_type, value } = element;
 
     let isReturn = false;
-    let strictVarType = var_type === "any" ? "any" : value.type.toLowerCase();
+    let strictVarType =
+        var_type === "any" ? "any" : (value.type || "any").toLowerCase();
 
     if (variableMemory.hasVariable(name) && strictVarType === "any") {
         assignmentHandler(element, variableMemory);

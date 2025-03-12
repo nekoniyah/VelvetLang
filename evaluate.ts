@@ -4,6 +4,7 @@ import { parser } from "./parser";
 import evaluateCondition from "./lib/evaluateCondition";
 import assignmentHandler from "./lib/assignmentHandler";
 import { MemoryManager } from "./lib/MemoryManager";
+import { VelvetError } from "./lib/ErrorHandler";
 
 export function evaluateElement(element: any, memory: MemoryManager) {
     // Dispatch table for evaluation
@@ -13,16 +14,15 @@ export function evaluateElement(element: any, memory: MemoryManager) {
         function_declaration: (element) =>
             handleFunctionDeclaration(element, memory),
         if: (element) => evaluateIfStatement(element, memory),
-        for_loop: (element) => evaluateForLoop(element, memory),
+        for: (element) => evaluateForLoop(element, memory),
         return: (element) => handleReturn(element, memory),
         variable_declaration: (element) => variableDeclarator(element, memory),
+        array_declaration: (element) => handleArrayDeclaration(element, memory),
     };
 
     const handler = handlers[element.type];
     if (handler) {
         handler(element);
-    } else {
-        console.warn(`Unknown element type: ${element.type}`);
     }
 
     function handleFunctionDeclaration(element: any, memory: MemoryManager) {
@@ -36,9 +36,11 @@ export function evaluateElement(element: any, memory: MemoryManager) {
         const start = evaluateExpression(element.start, memory);
         const end = evaluateExpression(element.end, memory);
 
+        memory.setVariable(element.name, "int", start);
+
         for (let i = start; i <= end; i++) {
-            memory.setVariable(element.variable, "int", i);
-            for (const stmt of element.body) {
+            memory.setVariable(element.name, "int", i);
+            for (const stmt of element.statements) {
                 evaluateElement(stmt, memory);
             }
         }
@@ -85,6 +87,14 @@ export function evaluateElement(element: any, memory: MemoryManager) {
             }
         }
     }
+
+    function handleArrayDeclaration(element: any, memory: MemoryManager) {
+        const evaluatedElements = (element.value || element.value.value).map(
+            (expr: any) => evaluateExpression(expr, memory)
+        );
+
+        memory.setVariable(element.name, element.array_type, evaluatedElements);
+    }
 }
 
 export function evaluateExpression(expr: any, memory: MemoryManager) {
@@ -99,6 +109,10 @@ export function evaluateExpression(expr: any, memory: MemoryManager) {
 
     // Handle variable references
     if (typeof expr === "string" && memory.hasVariable(expr)) {
+        if (Array.isArray(memory.getVariable(expr)?.value)) {
+            return memory.getVariable(expr)?.value.map((e: any) => e.value);
+        }
+
         return memory.getVariable(expr)?.value;
     }
 
@@ -109,7 +123,20 @@ export function evaluateExpression(expr: any, memory: MemoryManager) {
 
     // Handle function calls
     if (expr && expr.type === "function_call") {
-        return handleFunctions(expr, memory);
+        switch (expr.name) {
+            case "max":
+                return Math.max(
+                    ...expr.args.map((arg) => evaluateExpression(arg, memory))
+                );
+            case "min":
+                return Math.min(
+                    ...expr.args.map((arg) => evaluateExpression(arg, memory))
+                );
+            case "abs":
+                return Math.abs(evaluateExpression(expr.args[0], memory));
+            default:
+                return handleFunctions(expr, memory);
+        }
     }
 
     // Handle expressions with mathematical operations
@@ -129,6 +156,23 @@ export function evaluateExpression(expr: any, memory: MemoryManager) {
             default:
                 return 0;
         }
+    }
+
+    // Handle array access
+    if (expr && expr.type === "array_access") {
+        const array = memory.getVariable(expr.array)?.value;
+        const index = expr.index.value;
+        if (Array.isArray(array) && typeof index === "number") {
+            return array[index].value;
+        }
+
+        new VelvetError(
+            "Invalid array access",
+            0,
+            0,
+            "",
+            "Array Error"
+        ).handleError();
     }
 
     return 0; // Default return for unhandled cases

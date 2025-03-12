@@ -1,5 +1,6 @@
 import handleFunctions from "./handleFunctions";
 import { MemoryManager } from "./MemoryManager";
+import { evaluateExpression } from "../evaluate";
 
 export default function handleFunctionParameters(
     element: any,
@@ -7,11 +8,15 @@ export default function handleFunctionParameters(
 ): any[] {
     if (element.value === "true" || element.value === "false") {
         return [element.value === "true"];
-    }
-
-    if (typeof element.value === "string") {
+    } else if (typeof element.value === "string") {
         if (!variableMemory.hasVariable(element.value)) {
             return [undefined];
+        }
+
+        if (Array.isArray(variableMemory.getVariable(element.value)?.value)) {
+            return variableMemory
+                .getVariable(element.value)
+                ?.value.map((e: any) => e.value);
         }
 
         return [variableMemory.getVariable(element.value)?.value];
@@ -19,6 +24,11 @@ export default function handleFunctionParameters(
         if (!element.args) return [];
 
         let args = element.args.map((arg: any) => {
+            // Handle array access
+            if (arg.type === "array_access") {
+                return evaluateExpression(arg, variableMemory);
+            }
+
             if (arg.type === "function_call")
                 // @ts-ignore
                 return handleFunctions(arg, variableMemory)?.value;
@@ -26,6 +36,12 @@ export default function handleFunctionParameters(
             if (typeof arg === "string") {
                 if (arg === "true" || arg === "false") {
                     return arg === "true";
+                }
+
+                if (Array.isArray(variableMemory.getVariable(arg)?.value)) {
+                    return variableMemory
+                        .getVariable(arg)
+                        ?.value.map((e: any) => e.value);
                 }
 
                 if (!variableMemory.hasVariable(arg)) return undefined;

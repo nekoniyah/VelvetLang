@@ -3,15 +3,16 @@ Program = Statement*
 
 Statement
   =
-   VariableDeclaration
+    ForLoop
+  / VariableDeclaration
   / Assignment
   / IfStatement
   / FunctionCall
   / ExpressionStatement
-  / FunctionDeclaration  
-  / ForLoop           
+  / FunctionDeclaration         
   / ReturnStatement  
   / Comments
+  / ArrayDeclaration
   
 
 // Variable Declaration
@@ -28,7 +29,7 @@ Assignment
 
 // Function Call
 FunctionCall
-  = name:("len" / "round" / "ceil" / "floor" / "print") "(" _ args:Arguments? _ ")" _ {
+  = name:("len" / "round" / "ceil" / "floor" / "print" / "max" / "min" / "abs") "(" _ args:Arguments? _ ")" _ {
       return { type: "function_call", name, args, location: location() };
     }
 
@@ -41,7 +42,7 @@ ExpressionStatement
 // Expressions
 
 Expression
-  = term:Term tail:(_ ("+" / "-") _ term2:Term)* {
+  = first:Term tail:(_ ("+" / "-") _ term2:Term)* {
       return tail.reduce(function(result, element) {
         if (result instanceof String && result == "") result = { value: 0 };
 
@@ -60,11 +61,11 @@ Expression
         }
 
         return result;
-      }, term);
-    } / FunctionCall / Identifier / Literal
+      }, first);
+    } / FunctionCall / Identifier / Literal / ArrayAccess
 
 Term
-  = factor:Factor tail:(_ ("*" / "/") _ factor2:Factor)* {
+  = first:Factor tail:(_ ("*" / "/") _ factor2:Factor)* {
       return tail.reduce(function(result, element) {
         if (result instanceof String && result == "") result = { value: 1 };
 
@@ -83,19 +84,22 @@ Term
         }
 
         return result;
-      }, factor);
-    }
+      }, first);
+    } / ArrayAccess
 
 
 Factor
-  = "(" _ expr:Expression _ ")" { return expr; }
-  / NumberLiteral / FunctionCall
+  = ArrayAccess
+  / "(" _ expr:Expression _ ")" { return expr; }
+  / NumberLiteral
+  / FunctionCall
   / Identifier
 
 
 // Literals
 Literal
   = StringLiteral
+  / ArrayLiteral
   / NumberLiteral
   / BoolLiteral
 
@@ -140,6 +144,7 @@ Type
   / "Int"
   / "Float"
   / "Bool"
+  / "Array" / "Array " "(" Type ")"
 
 // Arguments
 Arguments
@@ -161,6 +166,12 @@ Condition = left:NonCalculationStatement _ operator:Operator _ right:NonCalculat
 MultipleStatements = statements:(_ Statement) _ {
   return statements.filter(s =>  s !== null).filter(s => !("length" in s))
 }
+
+// Add rule for for loop
+ForLoop = "for" " " name:Identifier "in" " " start:Expression "to" " " end:Expression ":" "\r" statements:MultipleStatements {
+    return { type: "for", name, start, end, statements, location: location() };
+}
+
 
 IfStatement
   = "if" " " condition:Condition ":" "\r" statements:MultipleStatements 
@@ -202,7 +213,7 @@ Comments
 
 // Add new rules for functions
 FunctionDeclaration
-  = "func" _ name:Identifier "(" _ params:Parameters? _ ")" ":" "\r" body:MultipleStatements {
+  = "func" " " name:Identifier "(" _ params:Parameters? _ ")" ":" "\r" body:MultipleStatements {
       return {
         type: "function_declaration",
         name,
@@ -223,21 +234,35 @@ Parameter
     }
 
 ReturnStatement
-  = "return" _ value:Expression _ {
+  = "return" " " value:Expression _ {
       return { type: "return", value, location: location() };
     }
 
-// Add rule for for loop
-ForLoop
-  = "for" _ variable:Identifier _ "in" _ start:Expression _ "to" _ end:Expression ":" "\r" body:MultipleStatements {
-      return {
-        type: "for_loop",
-        variable,
-        start,
-        end,
-        body,
-        location: location()
-      };
+// Array Declaration
+ArrayDeclaration
+  = "Array" "(" type:Type ")" NotNewLine name:Identifier NotNewLine ":" NotNewLine value:ArrayLiteral _ {
+      return { type: "array_declaration", name, value, array_type: type, location: location() };
+    }
+  / "Array" name:Identifier NotNewLine ":" NotNewLine value:ArrayLiteral _ {
+      return { type: "array_declaration", name, value, array_type: "any", location: location() };
+    }
+
+// Array Literal
+ArrayLiteral
+  = "[" NotNewLine elements:ExpressionList? NotNewLine "]" {
+      return elements || [];
+    }
+
+// Expression List
+ExpressionList
+  = first:Expression rest:(_ "," _ Expression)* {
+      return [first].concat(rest.map(r => r[3]));
+    }
+
+// Array Access
+ArrayAccess
+  = array:Identifier "[" _ index:Expression _ "]" {
+      return { type: "array_access", array, index, location: location() };
     }
 
 _ = [ \t\r\n]*

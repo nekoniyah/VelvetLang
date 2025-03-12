@@ -3,21 +3,20 @@ import handleFunctionParameters from "./handleFunctionParameters";
 import { MemoryManager } from "./MemoryManager";
 
 export default function handleFunctions(element: any, memory: MemoryManager) {
+    let args = handleFunctionParameters(element, memory);
     // Handle built-in functions
     if (["len", "round", "ceil", "floor", "print"].includes(element.name)) {
         switch (element.name) {
             case "len":
-                return element.value.length;
+                return args[0].length;
             case "round":
-                return Math.round(element.value);
+                return Math.round(args[0]);
             case "ceil":
-                return Math.ceil(element.value);
+                return Math.ceil(args[0]);
             case "floor":
-                return Math.floor(element.value);
+                return Math.floor(args[0]);
             case "print":
-                console.log(
-                    ...element.args.map((arg: any) => arg.value || arg)
-                );
+                console.log(...args);
         }
         return;
     }
