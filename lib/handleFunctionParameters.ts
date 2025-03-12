@@ -29,9 +29,16 @@ export default function handleFunctionParameters(
                 return evaluateExpression(arg, variableMemory);
             }
 
-            if (arg.type === "function_call")
-                // @ts-ignore
-                return handleFunctions(arg, variableMemory)?.value;
+            // Handle array method calls
+            if (arg.type === "array_method_call") {
+                return evaluateExpression(arg, variableMemory);
+            }
+
+            if (arg.type === "function_call") {
+                const result = handleFunctions(arg, variableMemory);
+                console.log(`Function call result: ${result}`);
+                return result;
+            }
 
             if (typeof arg === "string") {
                 if (arg === "true" || arg === "false") {

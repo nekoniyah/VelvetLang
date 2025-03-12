@@ -5,7 +5,17 @@ import { MemoryManager } from "./MemoryManager";
 export default function handleFunctions(element: any, memory: MemoryManager) {
     let args = handleFunctionParameters(element, memory);
     // Handle built-in functions
-    if (["len", "round", "ceil", "floor", "print"].includes(element.name)) {
+    if (
+        [
+            "len",
+            "round",
+            "ceil",
+            "floor",
+            "print",
+            "json_stringify",
+            "json_parse",
+        ].includes(element.name)
+    ) {
         switch (element.name) {
             case "len":
                 return args[0].length;
@@ -17,6 +27,25 @@ export default function handleFunctions(element: any, memory: MemoryManager) {
                 return Math.floor(args[0]);
             case "print":
                 console.log(...args);
+                break;
+            case "json_stringify":
+                try {
+                    console.log("json_stringify called with args:", args);
+                    const result = JSON.stringify(args[0]);
+                    console.log("Stringified result:", result);
+                    return result;
+                } catch (error) {
+                    console.error("JSON stringify error:", error);
+                    return "Error: " + error.message;
+                }
+            case "json_parse":
+                try {
+                    console.log("json_parse called with args:", args);
+                    return JSON.parse(args[0]);
+                } catch (error) {
+                    console.error("JSON parse error:", error);
+                    return "Error: " + error.message;
+                }
         }
         return;
     }

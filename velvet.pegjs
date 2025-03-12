@@ -13,6 +13,7 @@ Statement
   / ReturnStatement  
   / Comments
   / ArrayDeclaration
+  / ArrayMethodCall
   
 
 // Variable Declaration
@@ -29,7 +30,7 @@ Assignment
 
 // Function Call
 FunctionCall
-  = name:("len" / "round" / "ceil" / "floor" / "print" / "max" / "min" / "abs") "(" _ args:Arguments? _ ")" _ {
+  = name:("len" / "round" / "ceil" / "floor" / "print" / "max" / "min" / "abs" / "json_parse" / "json_stringify") "(" _ args:Arguments? _ ")" _ {
       return { type: "function_call", name, args, location: location() };
     }
 
@@ -62,7 +63,7 @@ Expression
 
         return result;
       }, first);
-    } / FunctionCall / Identifier / Literal / ArrayAccess
+    } / FunctionCall / ArrayMethodCall / Identifier / Literal / ArrayAccess
 
 Term
   = first:Factor tail:(_ ("*" / "/") _ factor2:Factor)* {
@@ -90,6 +91,7 @@ Term
 
 Factor
   = ArrayAccess
+  / ArrayMethodCall
   / "(" _ expr:Expression _ ")" { return expr; }
   / NumberLiteral
   / FunctionCall
@@ -104,21 +106,29 @@ Literal
   / BoolLiteral
 
 StringLiteral
-  = _ '"' chars: ([^\"]*) '"' _ {
-  	  var regex = /([^{}]+)|\{(\w+)\}/g
+  = _ '"' chars:StringChar* '"' _ {
+      var regex = /([^{}]+)|\{(\w+)\}/g
       let result = []
       let match;
 
-	while ((match = regex.exec(chars.join(""))) !== null) {
-    	if (match[1]) {  // If a fixed string is matched
-        	result.push(match[1]);
-    	} else if (match[2]) {  // If a variable is matched
-        	result.push({ variable: match[2] });
-    	}
-	}
+      while ((match = regex.exec(chars.join(""))) !== null) {
+          if (match[1]) {  // If a fixed string is matched
+              result.push(match[1]);
+          } else if (match[2]) {  // If a variable is matched
+              result.push({ variable: match[2] });
+          }
+      }
       
       return { type: "string", chars: result, value: chars.join("") };
   }
+
+StringChar
+  = "\\\\" { return "\\"; }
+  / "\\\"" { return "\""; }
+  / "\\n" { return "\n"; }
+  / "\\r" { return "\r"; }
+  / "\\t" { return "\t"; }
+  / [^\"\\]
 
 NumberLiteral
   = value:[0-9]+ "." fraction:[0-9]+ _ {
@@ -263,6 +273,12 @@ ExpressionList
 ArrayAccess
   = array:Identifier "[" _ index:Expression _ "]" {
       return { type: "array_access", array, index, location: location() };
+    }
+
+// Array Method Call
+ArrayMethodCall
+  = array:Identifier "." method:("push" / "pop" / "length" / "join") "(" _ args:Arguments? _ ")" _ {
+      return { type: "array_method_call", array, method, args: args || [], location: location() };
     }
 
 _ = [ \t\r\n]*
